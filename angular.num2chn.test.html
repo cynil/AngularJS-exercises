@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1;user-scalable=no">
+    <title>NUM2CHN</title>
+    <script src="./lib/angular.js"></script>
+    <script src="./lib/angular.num2chn.js"></script>
+</head>
+<body ng-controller="MainController">
+	<input type="text" ng-model="num">
+	<p>{{num | num2chn}}</p>
+    <script>
+	var myModule = angular.module('myApp', ['myFilters'])
+	
+	myModule.controller('MainController', function($scope){
+		//codes here
+		$scope.num = '40045780'
+    })
+    </script>
+</body>
+</html>
