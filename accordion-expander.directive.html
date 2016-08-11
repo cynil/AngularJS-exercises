@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+    <title>Accordion</title>
+    <style>
+        *{
+            margin: 0; 
+            padding: 0
+        }
+        .expander{
+            border: 1px solid #323232;
+            margin: 4px;
+            border-radius: 4px
+        }
+        .expander-title{
+            background-color: #323232;
+            color: #ffffff;
+            padding: 4px
+        }
+        .expander-body{
+            padding: 4px;
+        }
+    </style>
+    <script src="./lib/angular.js"></script>
+</head>
+<body ng-controller="MainController">
+	<accordion>
+	    <expander title="article.title" ng-repeat="article in articles">
+		    {{article.content}}
+	    </expander>
+	</accordion>
+	
+	<script>
+		var myApp = angular.module('myApp', [])
+		    .controller('MainController', function($scope){
+			    $scope.articles = [
+			        {
+				        title: 'How English gave birth to new languages',
+				        content: 'English has morphed into several other languages all over the world. James Harbeck looks at the origins and possible future of these strange descendants.'
+                    },{
+                        title: 'The women who never leave home',
+                        content: 'Israel\'s mysterious Druze women are beginning to open their craft circles, kitchens and homes to travellers.'
+                    },{
+                        title: 'Hidden meanings in The Garden of Earthly Delights',
+                        content: 'On the 500th anniversary of Hieronymus Bosch?s death, Fiona Macdonald picks out a few choice details from his most famous painting.'
+                    },{
+                        title: 'How Leni Riefenstahl shaped the way we see the Olympics',
+                        content: 'Is Leni Riefenstahl?s Olympia Nazi propaganda ? or the greatest film about sport ever made? Nicholas Barber takes a look.'
+                    }
+                ]
+            })
+
+
+//
+
+        myApp.directive('accordion', function(){
+            return {
+                restrict: 'E',
+                transclude: true,
+                replace: true,
+                template: '<div class="accordion" ng-transclude></div>',
+                controller: function(){
+                    var expanders = []
+			
+			        this.closeOthers = function(current){
+				        expanders.forEach(function(v, i, arr){
+					        if (v != current){
+						        v.showMe = false
+                            }
+                        })
+                    }
+            
+                    this.add = function(newExpander){
+                        expanders.push(newExpander)
+                    }
+                }
+            }
+        })
+
+		myApp.directive('expander', function(){
+			return {
+				restrict: 'E',
+				require: '^?accordion',
+				replace: true,
+				transclude: true,
+				scope: {
+                    title: '='
+                },
+                templateUrl: 'expander.template.html',
+                link: function(scope, element, attrs, accordion){
+                    
+                    accordion.add(scope)
+                    
+                    scope.showMe = false
+                    
+                    scope.open=function(){
+
+                        accordion.closeOthers(scope)
+                        scope.showMe = true
+                    }
+                }
+            }
+        })
+	</script>
+	
+	<script type="text/ng-template" id="expander.template.html">
+	    <div class="expander">
+		    <div class="expander-title" ng-click="open()">{{title}}</div>
+		    <div class="expander-body" ng-show="showMe" ng-transclude></div>
+		</div>
+	</script>
+</body>
+</html>

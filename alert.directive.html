@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <title>Alert</title>
+    <style>
+    </style>
+    <link rel="stylesheet" type="text/css" href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://code.angularjs.org/1.5.5/angular.min.js"></script>
+</head>
+<body ng-controller="MainController">
+
+	<alert type="alert.type" close="closeAlert($index)" ng-repeat="alert in alerts">
+      {{alert.message}}
+    </alert>
+
+    <script>
+        var myModule = angular.module('myApp', [])
+        
+        myModule.controller('MainController', function($scope){
+            $scope.alerts = [
+                {type: 'warning tooltip', message: 'warning'},
+                {type: 'info tooltip', message: 'Hi, there'}
+            ]
+            
+            $scope.closeAlert = function(index){
+                $scope.alerts.splice(index, 1)
+            }
+        })
+        
+        myModule.directive('alert', function(){
+            return {
+                restrict: 'E',
+                replace: true,
+                transclude: true,
+                templateUrl: 'alert.html',
+                scope: {type: '=', close: '&'}
+            }
+        })   
+    </script>
+    
+	<script type="text/ng-template" id="alert.html">
+	    <div class="alert alert-{{type}}">
+		    <div ng-click="close()">close me</div>
+		    <div ng-transclude></div>
+		</div>
+    </script>
+</body>
+</html>

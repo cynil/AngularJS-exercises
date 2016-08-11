@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <title>simple-model</title>
+    <style>
+    </style>
+    <script src="https://code.angularjs.org/1.5.5/angular.js"></script>
+</head>
+<body ng-controller="MainController">
+
+    <input type="text" simple-model="name">
+    <p simple-bind="name"></p>
+    <p>{{unstable()}}</p>
+
+    <script type="text/javascript">
+        var appModule = angular.module('myApp', [])
+        appModule.controller('MainController', function($scope){
+            $scope.name = 'zq'
+            $scope.flag = false
+            $scope.unstable = function(){
+                console.log('digesting...')
+                $scope.flag = !$scope.flag
+                return $scope.flag
+            }
+        })
+
+        appModule
+            .directive('simpleModel', function($parse){
+                return function(scope, element, attrs){
+
+                    var modelGetter = $parse(attrs.simpleModel)
+                    var modelSetter = modelGetter.assign
+
+                    //DOM -> Model
+                        element.bind('input', function(evt){
+                            scope.$apply(function(){
+                                modelSetter(scope, element.val())
+                            })
+                        })
+                    //Model -> DOM
+                    scope.$watch(modelGetter, function(newVal, oldVal){
+                        element.val(newVal)
+                    })
+                }
+            })
+            .directive('simpleBind', function($parse){
+                return function(scope, element, attrs){
+                    var modelGetter = $parse(attrs.simpleBind)
+
+                    scope.$watch(modelGetter, function(newVal, oldVal){
+                        element.text(modelGetter(scope))
+                    })
+                }
+            })
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
