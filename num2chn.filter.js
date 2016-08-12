@@ -53,13 +53,3 @@ angular.module('myFilters', [])
             }).join('')
         }
     })
-    
-    
-    
-
-
-
-
-
-
-

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <title>Tabset</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica', 'Microsoft Yahei'
+        }
+        .tab{
+            border: 1px solid #323232;
+            border-radius: 4px;
+            margin: 4px;
+            padding: 4px;
+        }
+        .active{
+            color: indianred;
+        }
+    </style>
+    <script src="./lib/angular.js"></script>
+</head>
+<body ng-controller="MainController">
+    <tab-set>
+        <tab topic="tab.topic" tab-action="loadMore($index)" ng-repeat="tab in tabs">
+            <div class="article" ng-repeat="article in tab.articles">
+                <h3>{{article.header}}</h3>
+                <p>{{article.brief}}</p>
+            </div>
+        </tab>
+    </tab-set>
+    <script>
+        var myApp = angular.module('myApp', [])
+        
+        myApp.controller('MainController', function($scope){
+            $scope.tabs = [
+                {
+                    'topic': 'Sports',
+                    'articles': [
+                        {
+                            'header': 'Cycling gold for GB as Grainger makes history',
+                            'brief': 'Great Britain won a fourth gold medal at the Rio Olympics as the men\'s cycling sprint team successfully defended their title on the day Katherine Grainger became the country\'s most decorated female Olympian.'
+                        },
+                        {
+                            'header': 'Record-breaking Phelps beats Lochte to win 22nd gold',
+                            'brief': 'Record-breaking Michael Phelps became the first swimmer to win four successive Olympic gold medals in one event by beating Ryan Lochte in the 200m individual medley.'
+                        }
+                    ] 
+                },
+                {
+                    'topic': 'People',
+                    'articles': [
+                        {
+                            'header': 'Father of 2011 riots victim: \'Time doesn\'t heal\'',
+                            'brief': 'Five years on from his son’s death in the 2011 riots in Birmingham, a man who has been credited with almost single-handedly preventing a race riot says “time doesn’t heal the wounds.”'
+                        },
+                        {
+                            'header': 'Judge allows dad to hold his baby for first time in court',
+                            'brief': 'A judge in America has allowed a convicted burglar to see his newborn baby for the first time in her courtroom.'
+                        }
+                    ] 
+                },
+                {
+                    'topic': 'Science',
+                    'articles': [
+                        {
+                            'header': 'Astronomers anticipating meteor \'storm\'',
+                            'brief': 'Observers are looking forward to an annual astronomical event that could to turn into a spectacular "meteor storm" in the early hours of Friday.'
+                        },
+                        {
+                            'header': '	400-year-old shark ‘oldest vertebrate’',
+                            'brief': 'Scientists say they have found a Greenland shark that is about 400 years old - making it the longest-living vertebrate known.'
+                        }
+                    ] 
+                }
+            ]
+            $scope.loadMore = function(index){
+                $scope.tabs[index].articles.push({
+                    'header': 'Record-breaking Phelps beats Lochte to win 22nd gold',
+                    'brief': 'Record-breaking Michael Phelps became the first swimmer to win four successive Olympic gold medals in one event by beating Ryan Lochte in the 200m individual medley.'
+                })
+            }
+        })
+
+        myApp.directive('tab', function(){
+            return {
+                restrict: 'E',
+                replace: true,
+                transclude: true,
+                require: '^?tabSet',
+                templateUrl: 'tab.template.html',
+                scope: {
+                    'topic': '=',
+                    'tabAction': '&'
+                },
+                link: function(scope, element, attrs, tabset){
+
+                    scope.inTabSet = false
+                    scope.showMe = true
+
+                    if(tabset){
+                        tabset.addTab(scope)
+                        scope.inTabSet = true
+                    }
+                }
+            }
+        })
+
+        myApp.directive('tabSet', function(){
+            return {
+                restrict: 'E',
+                replace: true,
+                transclude: true,
+                templateUrl: 'tab-set.template.html',
+                controller: function($scope){
+                    this.tabs = []
+
+                    this.addTab = function(tab){
+                        this.tabs.push(tab)
+                        if(this.tabs.length === 1){
+                            tab.showMe = true
+                        }else{
+                            tab.showMe = false
+                        }
+                    }
+
+
+                    var tabs = this.tabs
+                    $scope.goTo = function(index){
+                        tabs.map(function(v, i){
+                            if(index !== i){
+                                v.showMe = false
+                            }else{
+                                v.showMe = true
+                            }
+                        })
+                    }
+                }
+            }
+        })        
+    </script>
+    <script type="text/ng-template" id="tab.template.html">
+        <div class="tab" ng-show="showMe">
+            <h2 ng-show="!inTabSet">{{topic}}</h2>
+            <div class="tab-content" ng-transclude></div>
+            <a class="tab-btn" href="javascript:void(0)" ng-click="tabAction()">Load More</a>
+        </div>
+    </script>
+
+    <script type="text/ng-template" id="tab-set.template.html">
+        <div class="tab-set">
+            <div class="tab-set-header">
+                <span ng-repeat="tab in tabs"  ng-class="{active: tab.showMe}" ng-click="goTo($index)">{{tab.topic}}</span>
+            </div>
+            <div class="tab-set-contents" ng-transclude></div>
+        </div>
+    </script>
+</body>
+</html>
+
+
+
+
+
