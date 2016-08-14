@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sidebar</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Helvetica, 'Microsoft Yahei';
+        }
+        html, body, .sidebar, .sidebar-mask, .sidebar-content{
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+        nav{
+            text-align: right;
+        }
+        .sidebar{
+            position: fixed;
+            left: 0;
+            top: 0;
+            left: -100%;
+            transition: left 0.5s ease-in;
+        }
+        .sidebar.enter{
+            left: 0%;
+        }
+        .sidebar-mask{
+            position: absolute;
+            opacity: 0;
+        }
+        .sidebar-content{
+            position: absolute;
+            width: 60%;
+            background-color: #323254;
+            color: #fff;
+        }
+        .sidebar-content ul{
+            padding-top: 1.2em;
+        }
+        .sidebar-content li{
+            padding: 6px 8px;
+            font-size: 1.2em;
+        }
+
+        main{
+            padding: 4px;
+            font-size: 14px;
+            line-height: 1.428571429;
+            hyphens: auto;
+        }
+    </style>
+    <script src="./lib/angular.js"></script>
+</head>
+<body ng-controller="MainController">
+    <nav>
+        <button ng-click="showMe = !showMe">MENU</button>
+    </nav>
+    <sidebar toggle="showMe">
+        <ul>
+            <li>HOME</li>
+            <li>MYSPACE</li>
+            <li>POSTS</li>
+            <li>FAVOURITES</li>
+            <li>LEAVE</li>
+        </ul>
+    </sidebar>
+    <main>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quasi error laboriosam ex neque, vitae illo tempora incidunt nihil praesentium consequuntur sint distinctio, vero enim reiciendis, omnis, a accusantium quia? Atque eligendi tempore culpa, rem obcaecati rerum adipisci itaque dolorem. Illum provident possimus, inventore nobis quod officia esse molestiae rem nesciunt earum necessitatibus temporibus, debitis! Beatae itaque veniam porro harum dolore, quis quos reiciendis. Neque doloribus, quam, qui in excepturi non fugit, temporibus accusantium earum consequatur, reiciendis! Sapiente repudiandae vero, doloremque nostrum earum soluta quis commodi perferendis voluptas eum molestias similique neque quisquam cupiditate excepturi minus dolorem, nam non, deleniti quaerat.</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quae saepe, soluta rerum similique nesciunt facilis praesentium possimus? Ab doloremque, et eveniet tempore harum minima eligendi laudantium fuga velit, molestias incidunt id rem doloribus quae impedit aliquam placeat cum nemo voluptatem rerum voluptate in, ipsum earum! Sequi esse nemo sint placeat, inventore molestias. Delectus praesentium, consectetur iusto dicta?</p>
+    </main>
+    <script>
+        var myApp = angular.module('myApp', [])
+        myApp.controller('MainController', function($scope, $timeout){
+            $scope.showMe = false
+            $timeout(function(){
+                console.log($scope.showMe)
+            }, 5000)
+        })
+
+        myApp.directive('sidebar', function(){
+            return {
+                restrict: 'E',
+                replace: true,
+                transclude: true,
+                templateUrl: 'sidebar.template.html',
+                scope: {
+                    toggle: '='
+                },
+                link: function(scope, element, attrs){
+                    scope.hide = function(){
+                        scope.toggle = false
+                    }
+                }
+            }
+        })
+    </script>
+
+    <script type="text/ng-template" id="sidebar.template.html">
+        <div class="sidebar" ng-class="{enter: toggle}">
+            <div class="sidebar-mask" ng-click="hide()"></div>
+            <div class="sidebar-content">
+                <div ng-transclude></div>
+            </div>
+        </div>
+    </script>
+</body>
+</html>
