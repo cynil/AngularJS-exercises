@@ -1,2 +1,3 @@
-# AngularJS-exercises
-controllers, directives, services, filters, and more...
+#exercises
+
+short functions
