@@ -1,3 +1,5 @@
+//a simple implementation of gesture detection on mobile devices
+//support: tap, dbltap, swipe, move, press
 (function(window){
 
 function getTime(){
