@@ -1,140 +1,91 @@
-//a simple implementation of gesture detection on mobile devices
-//support: tap, dbltap, swipe, move, press
-(function(window){
-
-function getTime(){
-    return Date.now()
+(function(){
+function extend(optional, base){
+  for(var prop in optional){
+    if(!base[prop] && optional.hasOwnProperty(prop)){
+	  base[prop] = optional[prop]
+    }
+  }
 }
+function Event(){
+  this.events = {}
+}
+        
+Event.prototype = {
+  _emit: function(type, event){
+    var callbacks = this.events[type],
+		self = this
+
+      if(!callbacks) return
+		callbacks.map(function(cb){
+	      cb.call(self, event)
+	    })
+	  },
+  on: function(type, cb){
+	if(this.events[type] === undefined) {
+	  this.events[type] = [cb]
+	}
+	else{
+	  this.events[type].push(cb)
+	}
+	return this
+  },
+  off: function(type, cb){
+    if (!this.events[type]) return
+	if(!cb) this.events[type] = []
+
+	this.events[type] = this.events[type].filter(function(fn){
+	  return fn !== cb
+	})
+  }
+}
+
+var TAP_DURATION = 200,
+    TAP_DISTANCE = 30
 
 function getDistance(x0, y0){
-    return Math.sqrt(x0 * x0 + y0 * y0)
+  return Math.sqrt(x0 * x0 + y0 * y0)
 }
-
-var NEAR = 10,
-    PRESS_DURATION = 600,
-    DOUBLE_INTERVAL = 300
-
+function getDirection(x1, x2, y1, y2) {
+  return Math.abs(x1 - x2) >= Math.abs(y1 - y2) ? (x1 - x2 > 0 ? 2 : 0) : (y1 - y2 > 0 ? 3 : 1)
+}
 function Touch(el){
-    this.el = el
-    this.events = {}
-    this._previous = null
-    this._init()
+  Event.apply(this)
+  this.el = el
+  this._init()
 }
 
 Touch.prototype = {
-    _init: function(){
-        this.el.addEventListener('touchstart', this._touchstart.bind(this))
-        this.el.addEventListener('touchmove', this._touchmove.bind(this))
-        this.el.addEventListener('touchend', this._touchend.bind(this))
-    },
-    _emit: function(type, event){
-        var callbacks = this.events[type],
-            self = this
+  _init: function(){
+  this.el.addEventListener('touchstart', this._start.bind(this))
+    this.el.addEventListener('touchend', this._end.bind(this))
+  },
+  _start: function(event){
+    var pointer = event.touches[0]
+    
+	this.then = Date.now()
+	this.x0 = pointer.pageX
+	this.y0 = pointer.pageY
+  },
+  _end: function(event){
+    var pointer = event.changedTouches[0]
 
-        if(!callbacks) return
-        callbacks.map(function(cb){
-            cb.call(self.el, event)
-        })
-    },
-    on: function(type, cb){
-        if(this.events[type] === undefined) {
-            this.events[type] = [cb]
-        }
-        else{
-            this.events[type].push(cb)
-        }
+	event.duration = Date.now() - this.then 
+	event.endX = pointer.pageX
+	event.endY = pointer.pageY
 
-        return this
-    },
-    off: function(type, cb){
-        if (!this.events[type]) return
-        if(!cb) this.events[type] = []
+	var dX = event.endX - this.x0,
+	    dY = event.endY - this.y0
 
-        this.events[type] = this.events[type].filter(function(fn){
-            return fn !== cb
-        })
-    },
-
-    _touchstart: function(event){
-        var pointer = event.touches[0],
-            self = this
-
-        if(this.e) this._previous = this.e
-        this.e = {}
-        this.e.startX = pointer.pageX
-        this.e.startY = pointer.pageY
-        this.e.startTime = getTime()
-
-        this.pressClock = setTimeout(function(){
-            self.e.endTime = getTime()
-            self.e.duration = self.e.endTime - self.e.startTime
-            self._emit('press', self.e)
-        }, PRESS_DURATION)
-    },
-    _touchmove: function(event){
-        var pointer = event.touches[0],
-            X = pointer.pageX - this.e.startX,
-            Y = pointer.pageY - this.e.startY
-
-        if(getDistance(X, Y) > NEAR) clearTimeout(this.pressClock)
-
-        this.e.deltaX = X - (this._previousX || 0)
-        this.e.deltaY = Y - (this._previousY || 0)
-        this._previousX = X;this._previousY = Y
-
-        this._emit('move', this.e)
-
-    },
-    _touchend: function(event){
-        var pointer = event.changedTouches[0]
-        this.e.endTime = getTime()
-        this.e.duration = this.e.endTime -this.e.startTime
-        this.e.endX = pointer.pageX
-        this.e.endY = pointer.pageY
-
-        clearTimeout(this.pressClock)
-
-        var diffX = this.e.endX - this.e.startX,
-            diffY = this.e.endY - this.e.startY,
-            distance = getDistance(diffX, diffY),
-            rightWards = this.e.endX - this.e.startX > 0,
-            downWards = this.e.endY - this.e.startY > 0,
-            horizontal = Math.abs(diffX) > Math.abs(diffY)
-
-        if(distance > NEAR){
-            if(horizontal && rightWards){
-                this._emit('rswipe', this.e)
-            }
-            else if(horizontal && !rightWards){
-                this._emit('lswipe', this.e)
-            }
-            else if(!horizontal && downWards){
-                this._emit('dswipe', this.e)
-            }
-            else if(!horizontal && !downWards){
-                this._emit('uswipe', this.e)
-            }
-        }
-        else if(distance <= NEAR){
-            if(this.e.duration > PRESS_DURATION){
-                //this._emit('press', this.e)
-            }
-            else if(this.e.duration <= PRESS_DURATION){
-                if(this._previous){
-                     if(this.e.startTime - this._previous.endTime > DOUBLE_INTERVAL){
-                         this._emit('tap', this.e)
-                     }
-                     else if(this.e.startTime - this._previous.endTime <= DOUBLE_INTERVAL){
-                             this._emit('dbltap', this.e)
-                     }
-                }
-                else{
-                    this._emit('tap', this.e)
-                }
-            }
-        }
-
-        this._previousX = null;this._previousY = null
-    }
+	event.distance = getDistance(dX, dY)
+    if(event.duration < TAP_DURATION && event.distance <= TAP_DISTANCE){
+	  this._emit('tap', event)
+	}
+	else if(event.distance > TAP_DISTANCE){
+	  event.direction = getDirection(this.x0, event.endX, this.y0, event.endY)
+	    this._emit('swipe', event)
+	}
+  }
 }
-})(window)
+extend(Event.prototype, Touch.prototype)
+window.Finger = Touch
+})()
